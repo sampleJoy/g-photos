@@ -1,15 +1,27 @@
-// hello there!
-// 
-// I'm a serverless function that you can deploy as part of your site.
-// I'll get deployed to AWS Lambda, but you don't need to know that. 
-// You can develop and deploy serverless functions right here as part
-// of your site. Netlify Functions will handle the rest for you.
+// netlify/functions/photos.js
+const GooglePhotosAlbum = require("google-photos-album-image-url-fetch");
 
+const ALBUM_LINK = "https://photos.app.goo.gl/yourAlbumLinkHere"; // <-- replace with your album
 
-exports.handler = async event => {
-    const subject = event.queryStringParameters.name || 'World'
+exports.handler = async function (event, context) {
+  try {
+    // Fetch all image URLs from the Google Photos album
+    const photos = await GooglePhotosAlbum.fetchImageUrls(ALBUM_LINK);
+
+    // Return JSON response
     return {
-        statusCode: 200,
-        body: `Hello ${subject}!`,
-    }
-}
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*", // allow browser requests
+      },
+      body: JSON.stringify(photos),
+    };
+  } catch (err) {
+    console.error("Error fetching album:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Failed to fetch album", details: err.message }),
+    };
+  }
+};
